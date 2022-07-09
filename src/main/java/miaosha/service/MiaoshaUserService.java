@@ -58,7 +58,14 @@ public class MiaoshaUserService {
         response.addCookie(cookie);
     }
 
-    public MiaoshaUser getByToken(String token) {
-        return redisService.get(MiaoshaUserKey.getByToken,token,MiaoshaUser.class);
+    public MiaoshaUser getByToken(HttpServletResponse response,String token) {
+        if(token.isEmpty()){
+            return null;
+        }
+        MiaoshaUser user = redisService.get(MiaoshaUserKey.getByToken, token, MiaoshaUser.class);
+        if(user!=null){
+            addCookie(response,token,user);
+        }
+        return user;
     }
 }
