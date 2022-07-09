@@ -30,6 +30,9 @@ public class CodeMsg {
     //订单模块 5004XX
 
     //秒杀模块 5005XX
+    public static CodeMsg STOCK_EMPTY = new CodeMsg(500500,"商品已售罄");
+    public static CodeMsg REPEAT = new CodeMsg(500501,"用户只能秒杀商品一次");
+
 
     public CodeMsg fillArgs(String...args){
         int code = this.code;
