@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.util.List;
+
 @Service
 public class RedisService {
     @Autowired
@@ -83,6 +85,8 @@ public class RedisService {
             return (T) Long.valueOf(value);
         }else if(clazz==String.class){
             return (T) value;
+        }else if(clazz== List.class){
+            return JSON.parseObject(value,clazz);
         }
         return JSON.toJavaObject(JSON.parseObject(value),clazz);
     }

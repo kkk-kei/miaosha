@@ -5,3 +5,5 @@ CREATE TABLE `miaosha_order` (
     `goods_id` bigint(20) DEFAULT NULL COMMENT '商品ID',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE miaosha_order ADD UNIQUE KEY `u_uid_gid` (`user_id`,`goods_id`) USING BTREE;

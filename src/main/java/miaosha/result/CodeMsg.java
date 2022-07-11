@@ -28,6 +28,8 @@ public class CodeMsg {
     //商品模块 5003XX
 
     //订单模块 5004XX
+    public static CodeMsg ORDER_NOT_EXIST = new CodeMsg(500400, "订单不存在");
+    public static CodeMsg ORDER_REFUSED_CHECK = new CodeMsg(500400, "无法查询该订单");
 
     //秒杀模块 5005XX
     public static CodeMsg STOCK_EMPTY = new CodeMsg(500500,"商品已售罄");

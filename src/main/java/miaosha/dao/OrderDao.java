@@ -17,4 +17,7 @@ public interface OrderDao {
 
     @Insert("insert into miaosha_order (user_id,order_id,goods_id) values(#{userID},#{orderID},#{goodsID})")
     void insertMiaoshaOrder(MiaoshaOrder miaoshaOrder);
+
+    @Select("select * from order_info where id = #{orderID}")
+    OrderInfo getOrderByOrderID(@Param("orderID") Long orderID);
 }
