@@ -32,15 +32,17 @@ public class CodeMsg {
     public static CodeMsg ORDER_REFUSED_CHECK = new CodeMsg(500400, "无法查询该订单");
 
     //秒杀模块 5005XX
-    public static CodeMsg STOCK_EMPTY = new CodeMsg(500500,"商品已售罄");
-    public static CodeMsg REPEAT = new CodeMsg(500501,"用户只能秒杀商品一次");
-
+    public static CodeMsg MIAOSHA_SUCCESS = new CodeMsg(500500,"%s");
+    public static CodeMsg MIAOSHA_WAITING = new CodeMsg(500501,"排队中");
+    public static CodeMsg STOCK_EMPTY = new CodeMsg(500502,"商品已售罄");
+    public static CodeMsg MIAOSHA_REPEAT = new CodeMsg(500503,"用户只能秒杀商品一次");
 
     public CodeMsg fillArgs(String...args){
         int code = this.code;
         String msg = String.format(this.msg, args);
         return new CodeMsg(code,msg);
     }
+
     @Override
     public String toString() {
         return "CodeMsg{" +

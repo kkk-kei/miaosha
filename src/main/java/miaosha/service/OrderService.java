@@ -22,10 +22,6 @@ public class OrderService {
     @Autowired
     RedisService redisService;
 
-    public MiaoshaOrder getMiaoshaOrderByUserIDGoodsID(Long userID, Long goodsID) {
-        return orderDao.getMiaoshaOrderByUserIDGoodsID(userID,goodsID);
-    }
-
     @Transactional
     public OrderInfo createOrder(MiaoshaUser user, GoodsVO goodsVO) {
         //生成订单
@@ -39,13 +35,14 @@ public class OrderService {
         orderInfo.setOrderChannel(1);
         orderInfo.setStatus(0);
         orderInfo.setCreateDate(new Date());
-        long orderID = orderDao.insertOrderInfo(orderInfo);
+        orderDao.insertOrderInfo(orderInfo);
         //生成秒杀订单
         MiaoshaOrder miaoshaOrder = new MiaoshaOrder();
         miaoshaOrder.setUserID(user.getId());
-        miaoshaOrder.setOrderID(orderID);
+        miaoshaOrder.setOrderID(orderInfo.getId());
         miaoshaOrder.setGoodsID(goodsVO.getId());
         orderDao.insertMiaoshaOrder(miaoshaOrder);
+
         redisService.set(OrderKey.getByUidGid, "" + user.getId() + "_" + goodsVO.getId(), miaoshaOrder);
         return orderInfo;
     }
