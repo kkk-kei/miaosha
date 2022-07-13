@@ -1,5 +1,6 @@
 package miaosha.controller;
 
+import miaosha.access.AccessLimit;
 import miaosha.domain.MiaoshaUser;
 import miaosha.redis.GoodsKey;
 import miaosha.redis.RedisService;
@@ -28,7 +29,6 @@ public class GoodsController {
     @RequestMapping("/list")
     @ResponseBody
     public Result<List<GoodsVO>> toList(){
-//        List<GoodsVO> goodsList = new ArrayList<>();
         List<GoodsVO> goodsList = redisService.get(GoodsKey.getGoodsList, "",List.class);
         if(goodsList==null){
             goodsList = goodsService.getGoodsVOList();
@@ -37,6 +37,7 @@ public class GoodsController {
         return Result.success(goodsList);
     }
 
+    @AccessLimit(seconds = 1,maxCount = 5)
     @RequestMapping("/detail/{goodsID}")
     @ResponseBody
     public Result<GoodsDetailVO> toDetail(MiaoshaUser miaoshaUser,

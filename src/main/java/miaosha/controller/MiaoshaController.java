@@ -1,5 +1,8 @@
 package miaosha.controller;
 
+import miaosha.access.AccessLimit;
+import miaosha.access.Filter;
+import miaosha.access.NeedLogin;
 import miaosha.domain.MiaoshaOrder;
 import miaosha.domain.MiaoshaUser;
 import miaosha.exception.GlobalException;
@@ -43,11 +46,34 @@ public class MiaoshaController implements InitializingBean {
 
     private HashMap<Long,Boolean> isOverMap = new HashMap<>();
 
-    @PostMapping("/do_miaosha")
+
+    @AccessLimit(seconds = 1,maxCount = 5)
+    @NeedLogin(value = true)
+    @RequestMapping("/path/{goodsID}")
     @ResponseBody
-    public Result<CodeMsg> doMiaosha(MiaoshaUser user, @RequestParam("goodsID") Long goodsID){
+    public Result<String> getMiaoshaPath(MiaoshaUser user,
+                                         @PathVariable("goodsID")Long goodsID){
         if(user==null){
             return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        String path = miaoshaService.createMiaoshaPath(user.getId(),goodsID);
+        return Result.success(path);
+    }
+
+    @AccessLimit(seconds = 1,maxCount = 5)
+    @NeedLogin(value = true)
+    @Filter
+    @PostMapping("/{path}/do_miaosha")
+    @ResponseBody
+    public Result<CodeMsg> doMiaosha(MiaoshaUser user,
+                                     @PathVariable("path")String path,
+                                     @RequestParam("goodsID") Long goodsID){
+        if(user==null){
+            return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        Boolean check = miaoshaService.check(path,user.getId(),goodsID);
+        if(!check){
+            return Result.error(CodeMsg.REQUEST_ILLEGAL);
         }
         //内存标记
         Boolean isOver = isOverMap.get(goodsID);
@@ -74,6 +100,7 @@ public class MiaoshaController implements InitializingBean {
         return Result.success(CodeMsg.MIAOSHA_WAITING);
     }
 
+    @NeedLogin(value = true)
     @RequestMapping("/result/{goodsID}")
     @ResponseBody
     public Result<CodeMsg> getResult(MiaoshaUser user, @PathVariable("goodsID") Long goodsID){

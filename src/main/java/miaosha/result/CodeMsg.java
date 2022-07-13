@@ -17,6 +17,7 @@ public class CodeMsg {
     public static CodeMsg SUCCESS = new CodeMsg(0, "success");
     public static CodeMsg SERVER_ERROR = new CodeMsg(500100, "服务端异常");
     public static CodeMsg BIND_ERROR = new CodeMsg(500101, "参数校验异常：%s");
+    public static CodeMsg REQUEST_ILLEGAL = new CodeMsg(500101, "非法请求");
     //登录模块 5002XX
     public static CodeMsg SESSION_ERROR = new CodeMsg(500210, "Session不存在或者已经失效");
     public static CodeMsg PASSWORD_EMPTY = new CodeMsg(500211, "登录密码不能为空");
@@ -36,6 +37,7 @@ public class CodeMsg {
     public static CodeMsg MIAOSHA_WAITING = new CodeMsg(500501,"排队中");
     public static CodeMsg STOCK_EMPTY = new CodeMsg(500502,"商品已售罄");
     public static CodeMsg MIAOSHA_REPEAT = new CodeMsg(500503,"用户只能秒杀商品一次");
+    public static CodeMsg MIAOSHA_REFUSE = new CodeMsg(500504,"当前访问人数太多，请稍后再试");
 
     public CodeMsg fillArgs(String...args){
         int code = this.code;

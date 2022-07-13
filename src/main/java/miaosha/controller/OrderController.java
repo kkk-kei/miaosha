@@ -1,5 +1,6 @@
 package miaosha.controller;
 
+import miaosha.access.NeedLogin;
 import miaosha.domain.MiaoshaUser;
 import miaosha.domain.OrderInfo;
 import miaosha.exception.GlobalException;
@@ -25,6 +26,7 @@ public class OrderController {
     @Autowired
     GoodsService goodsService;
 
+    @NeedLogin(value = true)
     @RequestMapping("/detail/{orderID}")
     @ResponseBody
     public Result<OrderDetailVO> orderDetail(MiaoshaUser user,
