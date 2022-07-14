@@ -1,15 +1,17 @@
 ## 参考资料
 * 隐藏秒杀地址[https://www.shangyexinzhi.com/article/2741037.html]
+* 优化[https://www.cnblogs.com/xiangkejin/p/9351463.html]
 
 ## 总结
 * 秒杀链接加盐，防止提前暴露秒杀链接
 * 使用redis对单用户限流，使用令牌桶对秒杀接口限流
-* 使用内存标记，减少redis访问
+* 使用线程池进行队列泄洪,减少线程切换的开销
 * 使用redis进行库存预热和预减库存，减少数据库访问
-* 使用rocketMQ进行异步下单和流量削峰
 * 使用Jmeter进行压力测试，对接口进行优化
 
-
+限流是削峰的一种实现，限制总的qps
+线程池进行队列泄洪,限制cpu单位时间内处理的请求/单位时间内的qps
+![img.png](docs/img.png)
 ## 优化
 * Snowflake - 分布式自增 ID 算法（雪花）
 

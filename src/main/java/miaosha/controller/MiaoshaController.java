@@ -2,7 +2,6 @@ package miaosha.controller;
 
 import com.google.common.util.concurrent.RateLimiter;
 import miaosha.access.AccessLimit;
-import miaosha.access.Filter;
 import miaosha.access.NeedLogin;
 import miaosha.domain.MiaoshaOrder;
 import miaosha.domain.MiaoshaUser;
@@ -22,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.*;
 
 @Controller
 @RequestMapping("/miaosha")
@@ -41,6 +41,8 @@ public class MiaoshaController implements InitializingBean {
 
     private RateLimiter rateLimiter;
 
+    private ExecutorService executorService;
+
     private HashMap<Long,Boolean> isOverMap = new HashMap<>();
 
 
@@ -56,12 +58,11 @@ public class MiaoshaController implements InitializingBean {
 
     @AccessLimit(seconds = 30,maxCount = 1)//单用户限流，限制重复请求
     @NeedLogin(value = true)
-    @Filter
     @PostMapping("/{path}/do_miaosha")
     @ResponseBody
     public Result<CodeMsg> doMiaosha(MiaoshaUser user,
                                      @PathVariable("path")String path,
-                                     @RequestParam("goodsID") Long goodsID){
+                                     @RequestParam("goodsID")Long goodsID){
         //令牌桶限流，限制有效请求
         boolean pass = rateLimiter.tryAcquire(1);
         if(!pass){
@@ -87,13 +88,28 @@ public class MiaoshaController implements InitializingBean {
         if(stock<0){
             isOverMap.put(goodsID,true);
             goodsService.increaseRedisStock(goodsID);
-            throw new GlobalException(CodeMsg.STOCK_EMPTY);
+            return Result.error(CodeMsg.STOCK_EMPTY);
         }
-        //入队,异步下单
-        MiaoshaMessage message = new MiaoshaMessage();
-        message.setMiaoshaUser(user);
-        message.setGoodsID(goodsID);
-        sender.sendMiaoshaMessage(message);
+        //队列泄洪、入队异步下单
+        Future<Object> future = executorService.submit(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                MiaoshaMessage message = new MiaoshaMessage();
+                message.setMiaoshaUser(user);
+                message.setGoodsID(goodsID);
+                sender.sendMiaoshaMessage(message);
+                return null;
+            }
+        });
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            throw new GlobalException(CodeMsg.SERVER_ERROR);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            throw new GlobalException(CodeMsg.SERVER_ERROR);
+        }
         return Result.success(CodeMsg.MIAOSHA_WAITING);
     }
 
@@ -114,15 +130,15 @@ public class MiaoshaController implements InitializingBean {
             return;
         }
         for (GoodsVO goodsVO : goodsVOList) {
-            //redisService.set(GoodsKey.getGoodsStock,""+goodsVO.getId(),goodsVO.getStockCount());
             goodsService.addRedisStock(goodsVO.getId(),goodsVO.getStockCount());
             if (goodsVO.getGoodsStock()<=0) {
                 isOverMap.put(goodsVO.getId(),true);
             }
             isOverMap.put(goodsVO.getId(),false);
         }
-
         //初始化令牌桶
         rateLimiter = RateLimiter.create(100);
+        //初始化线程池
+        executorService = Executors.newFixedThreadPool(20);
     }
 }

@@ -2,8 +2,8 @@ package miaosha.access;
 
 import com.alibaba.fastjson.JSON;
 import miaosha.domain.MiaoshaUser;
-import miaosha.redis.key.AccessKey;
 import miaosha.redis.RedisService;
+import miaosha.redis.key.AccessKey;
 import miaosha.result.CodeMsg;
 import miaosha.result.Result;
 import miaosha.service.MiaoshaUserService;
@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Random;
 
 @Service
 public class AccessInterceptor extends HandlerInterceptorAdapter {
@@ -33,17 +32,6 @@ public class AccessInterceptor extends HandlerInterceptorAdapter {
                              Object handler) throws Exception {
         if(handler instanceof HandlerMethod){
             HandlerMethod handlerMethod = (HandlerMethod) handler;
-
-            //优先成本低的操作
-            Filter filter = handlerMethod.getMethodAnnotation(Filter.class);
-            if(filter!=null){
-                //随机数过滤
-                boolean pass = new Random().nextBoolean();
-                if(!pass){
-                    render(response,CodeMsg.MIAOSHA_REFUSE);
-                    return false;
-                }
-            }
 
             NeedLogin needLogin = handlerMethod.getMethodAnnotation(NeedLogin.class);
             if(needLogin!=null){
@@ -76,6 +64,7 @@ public class AccessInterceptor extends HandlerInterceptorAdapter {
                     return false;
                 }
             }
+
             return true;
         }
         return true;
