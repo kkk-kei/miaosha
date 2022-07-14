@@ -3,7 +3,6 @@ package miaosha.controller;
 import miaosha.access.NeedLogin;
 import miaosha.domain.MiaoshaUser;
 import miaosha.domain.OrderInfo;
-import miaosha.exception.GlobalException;
 import miaosha.result.CodeMsg;
 import miaosha.result.Result;
 import miaosha.service.GoodsService;
@@ -34,12 +33,15 @@ public class OrderController {
         //用户只能查看自己的订单
         OrderInfo orderInfo = orderService.getOrderInfoByOrderID(orderID);
         if(orderInfo==null){
-            throw new GlobalException(CodeMsg.ORDER_NOT_EXIST);
+            return Result.error(CodeMsg.ORDER_NOT_EXIST);
         }
         if(!String.valueOf(user.getId()).equals(String.valueOf(orderInfo.getUserID()))){
-            throw new GlobalException(CodeMsg.ORDER_REFUSED_CHECK);
+            return Result.error(CodeMsg.ORDER_REFUSED_CHECK);
         }
         GoodsVO goodsVO = goodsService.getGoodsVOByGoodsID(orderInfo.getGoodsID());
+        if(goodsVO==null){
+            return Result.error(CodeMsg.GOODS_NOT_EXIST);
+        }
         OrderDetailVO orderDetailVO = new OrderDetailVO();
         orderDetailVO.setOrderInfo(orderInfo);
         orderDetailVO.setGoodsVO(goodsVO);

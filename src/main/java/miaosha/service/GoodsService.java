@@ -45,6 +45,9 @@ public class GoodsService {
     }
 
     public GoodsVO getGoodsVOFromDBByGoodsID(Long goodsID){
+        if(goodsID==null||goodsID<=0){
+            return null;
+        }
         return goodsDao.getGoodsVOByGoodsID(goodsID);
     }
 

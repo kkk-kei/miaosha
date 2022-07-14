@@ -37,6 +37,10 @@ public class MQReceiver {
         }
         //判断库存
         GoodsVO goodsVO = goodsService.getGoodsVOFromDBByGoodsID(goodsID);
+        if(goodsVO==null){
+            goodsService.increaseRedisStock(goodsID);
+            return;
+        }
         int stockCount = goodsVO.getStockCount();
         if(stockCount<=0){
             goodsService.increaseRedisStock(goodsID);

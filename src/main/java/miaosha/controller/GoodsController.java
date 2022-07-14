@@ -2,6 +2,7 @@ package miaosha.controller;
 
 import miaosha.access.AccessLimit;
 import miaosha.domain.MiaoshaUser;
+import miaosha.result.CodeMsg;
 import miaosha.result.Result;
 import miaosha.service.GoodsService;
 import miaosha.vo.GoodsDetailVO;
@@ -25,6 +26,9 @@ public class GoodsController {
     @ResponseBody
     public Result<List<GoodsVO>> getList(){
         List<GoodsVO> goodsVOList = goodsService.getGoodsVOList();
+        if(goodsVOList==null){
+            return Result.error(CodeMsg.GOODSLIST_NOT_EXIST);
+        }
         return Result.success(goodsVOList);
     }
 
@@ -34,6 +38,9 @@ public class GoodsController {
     public Result<GoodsDetailVO> getDetail(MiaoshaUser miaoshaUser,
                                           @PathVariable("goodsID")Long goodsID){
         GoodsVO goodsVO = goodsService.getGoodsVOByGoodsID(goodsID);
+        if(goodsVO==null){
+            return Result.error(CodeMsg.GOODS_NOT_EXIST);
+        }
         long startAt = goodsVO.getStartDate().getTime();
         long endAt = goodsVO.getEndDate().getTime();
         long current = System.currentTimeMillis();

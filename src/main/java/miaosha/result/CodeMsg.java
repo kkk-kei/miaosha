@@ -27,6 +27,8 @@ public class CodeMsg {
     public static CodeMsg PASSWORD_ERROR = new CodeMsg(500215, "密码错误");
 
     //商品模块 5003XX
+    public static CodeMsg GOODS_NOT_EXIST = new CodeMsg(500300, "商品不存在");
+    public static CodeMsg GOODSLIST_NOT_EXIST = new CodeMsg(500300, "商品列表不存在");
 
     //订单模块 5004XX
     public static CodeMsg ORDER_NOT_EXIST = new CodeMsg(500400, "订单不存在");

@@ -67,6 +67,10 @@ public class MiaoshaService {
         if(StringUtils.isEmpty(oldPath)){
             return false;
         }
-        return oldPath.equals(path);
+        if(oldPath.equals(path)) {
+            redisService.delete(MiaoshaKey.getMiaoshaPathByUidGid,""+userID+""+goodsID);
+            return true;
+        }
+        return false;
     }
 }

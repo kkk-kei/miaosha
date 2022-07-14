@@ -1,5 +1,6 @@
 package miaosha.controller;
 
+import com.google.common.util.concurrent.RateLimiter;
 import miaosha.access.AccessLimit;
 import miaosha.access.Filter;
 import miaosha.access.NeedLogin;
@@ -35,9 +36,10 @@ public class MiaoshaController implements InitializingBean {
     @Autowired
     OrderService orderService;
 
-
     @Autowired
     MQSender sender;
+
+    private RateLimiter rateLimiter;
 
     private HashMap<Long,Boolean> isOverMap = new HashMap<>();
 
@@ -52,8 +54,7 @@ public class MiaoshaController implements InitializingBean {
         return Result.success(path);
     }
 
-    //限流30s只能访问一次，即一个动态url只能秒杀一次且有效期为30s
-    @AccessLimit(seconds = 30,maxCount = 1)
+    @AccessLimit(seconds = 30,maxCount = 1)//单用户限流，限制重复请求
     @NeedLogin(value = true)
     @Filter
     @PostMapping("/{path}/do_miaosha")
@@ -61,6 +62,11 @@ public class MiaoshaController implements InitializingBean {
     public Result<CodeMsg> doMiaosha(MiaoshaUser user,
                                      @PathVariable("path")String path,
                                      @RequestParam("goodsID") Long goodsID){
+        //令牌桶限流，限制有效请求
+        boolean pass = rateLimiter.tryAcquire(1);
+        if(!pass){
+            return Result.error(CodeMsg.MIAOSHA_REFUSE);
+        }
         Boolean check = miaoshaService.checkPath(path,user.getId(),goodsID);
         if(!check){
             return Result.error(CodeMsg.REQUEST_ILLEGAL);
@@ -72,13 +78,11 @@ public class MiaoshaController implements InitializingBean {
         }
         //判断是否重复秒杀
         //先判断重复秒杀，防止同一用户多次预减库存
-        //MiaoshaOrder order = redisService.get(OrderKey.getByUidGid, "" + user.getId() + "_" + goodsID, MiaoshaOrder.class);
         MiaoshaOrder order = orderService.getMiaoOrderByUidGid(user.getId(),goodsID);
         if(order!=null){
             return Result.error(CodeMsg.MIAOSHA_REPEAT);
         }
         //redis预减库存
-        //Long stock = redisService.decr(GoodsKey.getGoodsStock, "" + goodsID);
         Long stock = goodsService.reduceRedisStock(goodsID);
         if(stock<0){
             isOverMap.put(goodsID,true);
@@ -117,5 +121,8 @@ public class MiaoshaController implements InitializingBean {
             }
             isOverMap.put(goodsVO.getId(),false);
         }
+
+        //初始化令牌桶
+        rateLimiter = RateLimiter.create(100);
     }
 }

@@ -11,6 +11,17 @@ public class RedisService {
     @Autowired
     JedisPool jedisPool;
 
+    public <T> T get(KeyPrefix prefix,String key,Class<T> clazz){
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            String realKey = prefix.getPrefix()+key;
+            String val = jedis.get(realKey);
+            return (T)ConvertUtil.stringToBean(val, clazz);
+        }finally {
+            returnToPool(jedis);
+        }
+    }
     public <T> boolean set(KeyPrefix prefix,String key,T value){
         Jedis jedis = null;
         try {
@@ -31,13 +42,13 @@ public class RedisService {
         }
         return true;
     }
-    public <T> T get(KeyPrefix prefix,String key,Class<T> clazz){
+    public boolean delete(KeyPrefix prefix,String key){
         Jedis jedis = null;
-        try {
+        try{
             jedis = jedisPool.getResource();
             String realKey = prefix.getPrefix()+key;
-            String val = jedis.get(realKey);
-            return (T)ConvertUtil.stringToBean(val, clazz);
+            Long res = jedis.del(realKey);
+            return res>0;
         }finally {
             returnToPool(jedis);
         }
