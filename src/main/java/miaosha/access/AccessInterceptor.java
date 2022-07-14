@@ -2,7 +2,7 @@ package miaosha.access;
 
 import com.alibaba.fastjson.JSON;
 import miaosha.domain.MiaoshaUser;
-import miaosha.redis.AccessKey;
+import miaosha.redis.key.AccessKey;
 import miaosha.redis.RedisService;
 import miaosha.result.CodeMsg;
 import miaosha.result.Result;

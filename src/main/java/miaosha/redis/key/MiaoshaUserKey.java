@@ -1,6 +1,8 @@
-package miaosha.redis;
+package miaosha.redis.key;
 
-public class MiaoshaUserKey extends BasePrefix{
+import miaosha.redis.BasePrefix;
+
+public class MiaoshaUserKey extends BasePrefix {
 
     public static final int TOKEN_EXPIRE = 3600*24*2;
 
@@ -9,4 +11,5 @@ public class MiaoshaUserKey extends BasePrefix{
     }
 
     public static MiaoshaUserKey getByToken = new MiaoshaUserKey(TOKEN_EXPIRE,"tk");
+    public static MiaoshaUserKey getByID = new MiaoshaUserKey(0,"id");
 }

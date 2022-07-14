@@ -2,7 +2,7 @@ package miaosha.rabbitmq;
 
 import miaosha.domain.MiaoshaOrder;
 import miaosha.domain.MiaoshaUser;
-import miaosha.redis.OrderKey;
+import miaosha.redis.key.OrderKey;
 import miaosha.redis.RedisService;
 import miaosha.service.GoodsService;
 import miaosha.service.MiaoshaService;
@@ -30,7 +30,7 @@ public class MQReceiver {
         MiaoshaUser user = msg.getMiaoshaUser();
         long goodsID = msg.getGoodsID();
         //判断重复秒杀
-        MiaoshaOrder order = redisService.get(OrderKey.getByUidGid, "" + user.getId() + "_" + goodsID, MiaoshaOrder.class);
+        MiaoshaOrder order = redisService.get(OrderKey.getMiaoshaOrderByUidGid, "" + user.getId() + "_" + goodsID, MiaoshaOrder.class);
         if(order!=null){
             return;
         }

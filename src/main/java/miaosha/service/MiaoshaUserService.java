@@ -3,12 +3,13 @@ package miaosha.service;
 import miaosha.dao.MiaoshaUserDao;
 import miaosha.domain.MiaoshaUser;
 import miaosha.exception.GlobalException;
-import miaosha.redis.MiaoshaUserKey;
+import miaosha.redis.key.MiaoshaUserKey;
 import miaosha.redis.RedisService;
 import miaosha.result.CodeMsg;
 import miaosha.util.MD5Util;
 import miaosha.util.UUIDUtil;
 import miaosha.vo.LoginVO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +25,16 @@ public class MiaoshaUserService {
 
     public static final String COOKIE_NAME_TOKEN = "token";
 
-    public MiaoshaUser getByID(long id){
-        return miaoshaUserDao.getById(id);
+    public MiaoshaUser getByID(long userID){
+        MiaoshaUser user = redisService.get(MiaoshaUserKey.getByID, "" + userID, MiaoshaUser.class);
+        if(user==null){
+            user = miaoshaUserDao.getById(userID);
+            if(user==null){
+                return user;
+            }
+            redisService.set(MiaoshaUserKey.getByID,""+userID,user);
+        }
+        return user;
     }
 
     public boolean login(HttpServletResponse response, LoginVO loginVO) {
@@ -34,11 +43,10 @@ public class MiaoshaUserService {
         }
         String mobile = loginVO.getMobile();
         String formPWD = loginVO.getPassword();
-        MiaoshaUser user = miaoshaUserDao.getById(Long.parseLong(mobile));
+        MiaoshaUser user = getByID(Long.parseLong(mobile));
         if(user==null){
             throw new GlobalException(CodeMsg.MOBILE_NOT_EXIST);
         }
-
         String dbPWD = user.getPassword();
         String randomSalt = user.getSalt();
         String calPWD = MD5Util.formPwdToDBPwd(formPWD, randomSalt);
@@ -59,7 +67,7 @@ public class MiaoshaUserService {
     }
 
     public MiaoshaUser getByToken(HttpServletResponse response,String token) {
-        if(token.isEmpty()){
+        if(StringUtils.isEmpty(token)){
             return null;
         }
         MiaoshaUser user = redisService.get(MiaoshaUserKey.getByToken, token, MiaoshaUser.class);

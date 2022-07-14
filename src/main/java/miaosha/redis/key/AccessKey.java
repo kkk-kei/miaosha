@@ -1,6 +1,8 @@
-package miaosha.redis;
+package miaosha.redis.key;
 
-public class AccessKey extends BasePrefix{
+import miaosha.redis.BasePrefix;
+
+public class AccessKey extends BasePrefix {
 
     public AccessKey(int expireSeconds, String prefix) {
         super(expireSeconds, prefix);

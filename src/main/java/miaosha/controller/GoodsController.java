@@ -2,8 +2,6 @@ package miaosha.controller;
 
 import miaosha.access.AccessLimit;
 import miaosha.domain.MiaoshaUser;
-import miaosha.redis.GoodsKey;
-import miaosha.redis.RedisService;
 import miaosha.result.Result;
 import miaosha.service.GoodsService;
 import miaosha.vo.GoodsDetailVO;
@@ -23,24 +21,17 @@ public class GoodsController {
     @Autowired
     GoodsService goodsService;
 
-    @Autowired
-    RedisService redisService;
-
     @RequestMapping("/list")
     @ResponseBody
-    public Result<List<GoodsVO>> toList(){
-        List<GoodsVO> goodsList = redisService.get(GoodsKey.getGoodsList, "",List.class);
-        if(goodsList==null){
-            goodsList = goodsService.getGoodsVOList();
-            redisService.set(GoodsKey.getGoodsList,"",goodsList);
-        }
-        return Result.success(goodsList);
+    public Result<List<GoodsVO>> getList(){
+        List<GoodsVO> goodsVOList = goodsService.getGoodsVOList();
+        return Result.success(goodsVOList);
     }
 
     @AccessLimit(seconds = 1,maxCount = 5)
     @RequestMapping("/detail/{goodsID}")
     @ResponseBody
-    public Result<GoodsDetailVO> toDetail(MiaoshaUser miaoshaUser,
+    public Result<GoodsDetailVO> getDetail(MiaoshaUser miaoshaUser,
                                           @PathVariable("goodsID")Long goodsID){
         GoodsVO goodsVO = goodsService.getGoodsVOByGoodsID(goodsID);
         long startAt = goodsVO.getStartDate().getTime();

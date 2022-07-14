@@ -2,8 +2,8 @@ package miaosha.service;
 
 import miaosha.domain.MiaoshaOrder;
 import miaosha.domain.MiaoshaUser;
-import miaosha.redis.MiaoshaKey;
-import miaosha.redis.OrderKey;
+import miaosha.redis.key.MiaoshaKey;
+import miaosha.redis.key.OrderKey;
 import miaosha.redis.RedisService;
 import miaosha.result.CodeMsg;
 import miaosha.result.Result;
@@ -33,7 +33,7 @@ public class MiaoshaService {
     @Transactional
     public void miaosha(MiaoshaUser user, GoodsVO goodsVO) {
         //减少库存 生成订单
-        boolean success = goodsService.reduceStock(goodsVO.getId());
+        boolean success = goodsService.reduceDBStock(goodsVO.getId());
         if(success){
             orderService.createOrder(user,goodsVO);
         }else{
@@ -42,7 +42,7 @@ public class MiaoshaService {
     }
 
     public Result<CodeMsg> getMiaoshaResult(Long userID, Long goodsID) {
-        MiaoshaOrder order = redisService.get(OrderKey.getByUidGid, "" + userID + "_" + goodsID, MiaoshaOrder.class);
+        MiaoshaOrder order = redisService.get(OrderKey.getMiaoshaOrderByUidGid, "" + userID + "_" + goodsID, MiaoshaOrder.class);
         if(order!=null){
             return Result.success(CodeMsg.MIAOSHA_SUCCESS.fillArgs(String.valueOf(order.getOrderID())));
         }else{
@@ -57,13 +57,13 @@ public class MiaoshaService {
 
     public String createMiaoshaPath(Long userID, Long goodsID) {
         String path = MD5Util.md5(UUIDUtil.uuid() + MD5Util.salt);
-        redisService.set(MiaoshaKey.getMiaoshaPath,""+userID+"_"+goodsID,path);
+        redisService.set(MiaoshaKey.getMiaoshaPathByUidGid,""+userID+"_"+goodsID,path);
         return path;
     }
 
 
-    public Boolean check(String path, Long userID, Long goodsID) {
-        String oldPath = redisService.get(MiaoshaKey.getMiaoshaPath, "" + userID + "_" + goodsID, String.class);
+    public Boolean checkPath(String path, Long userID, Long goodsID) {
+        String oldPath = redisService.get(MiaoshaKey.getMiaoshaPathByUidGid, "" + userID + "_" + goodsID, String.class);
         if(StringUtils.isEmpty(oldPath)){
             return false;
         }

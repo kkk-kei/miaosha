@@ -8,9 +8,6 @@ import miaosha.domain.MiaoshaUser;
 import miaosha.exception.GlobalException;
 import miaosha.rabbitmq.MQSender;
 import miaosha.rabbitmq.MiaoshaMessage;
-import miaosha.redis.GoodsKey;
-import miaosha.redis.OrderKey;
-import miaosha.redis.RedisService;
 import miaosha.result.CodeMsg;
 import miaosha.result.Result;
 import miaosha.service.GoodsService;
@@ -38,8 +35,6 @@ public class MiaoshaController implements InitializingBean {
     @Autowired
     OrderService orderService;
 
-    @Autowired
-    RedisService redisService;
 
     @Autowired
     MQSender sender;
@@ -60,7 +55,8 @@ public class MiaoshaController implements InitializingBean {
         return Result.success(path);
     }
 
-    @AccessLimit(seconds = 1,maxCount = 5)
+    //限流30s只能访问一次，即一个动态url只能秒杀一次且有效期为30s
+    @AccessLimit(seconds = 30,maxCount = 1)
     @NeedLogin(value = true)
     @Filter
     @PostMapping("/{path}/do_miaosha")
@@ -71,7 +67,7 @@ public class MiaoshaController implements InitializingBean {
         if(user==null){
             return Result.error(CodeMsg.SESSION_ERROR);
         }
-        Boolean check = miaoshaService.check(path,user.getId(),goodsID);
+        Boolean check = miaoshaService.checkPath(path,user.getId(),goodsID);
         if(!check){
             return Result.error(CodeMsg.REQUEST_ILLEGAL);
         }
@@ -82,12 +78,14 @@ public class MiaoshaController implements InitializingBean {
         }
         //判断是否重复秒杀
         //先判断重复秒杀，防止同一用户多次预减库存
-        MiaoshaOrder order = redisService.get(OrderKey.getByUidGid, "" + user.getId() + "_" + goodsID, MiaoshaOrder.class);
+        //MiaoshaOrder order = redisService.get(OrderKey.getByUidGid, "" + user.getId() + "_" + goodsID, MiaoshaOrder.class);
+        MiaoshaOrder order = orderService.getMiaoOrderByUidGid(user.getId(),goodsID);
         if(order!=null){
             return Result.error(CodeMsg.MIAOSHA_REPEAT);
         }
         //redis预减库存
-        Long stock = redisService.decr(GoodsKey.getGoodsStock, "" + goodsID);
+        //Long stock = redisService.decr(GoodsKey.getGoodsStock, "" + goodsID);
+        Long stock = goodsService.reduceRedisStock(goodsID);
         if(stock<0){
             isOverMap.put(goodsID,true);
             throw new GlobalException(CodeMsg.STOCK_EMPTY);
@@ -117,7 +115,8 @@ public class MiaoshaController implements InitializingBean {
             return;
         }
         for (GoodsVO goodsVO : goodsVOList) {
-            redisService.set(GoodsKey.getGoodsStock,""+goodsVO.getId(),goodsVO.getStockCount());
+            //redisService.set(GoodsKey.getGoodsStock,""+goodsVO.getId(),goodsVO.getStockCount());
+            goodsService.addRedisStock(goodsVO.getId(),goodsVO.getStockCount());
             if (goodsVO.getGoodsStock()<=0) {
                 isOverMap.put(goodsVO.getId(),true);
             }
