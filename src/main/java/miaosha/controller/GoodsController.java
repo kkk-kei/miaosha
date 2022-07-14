@@ -5,6 +5,7 @@ import miaosha.domain.MiaoshaUser;
 import miaosha.result.CodeMsg;
 import miaosha.result.Result;
 import miaosha.service.GoodsService;
+import miaosha.service.MiaoshaService;
 import miaosha.vo.GoodsDetailVO;
 import miaosha.vo.GoodsVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ public class GoodsController {
 
     @Autowired
     GoodsService goodsService;
+
+    @Autowired
+    MiaoshaService miaoshaService;
 
     @RequestMapping("/list")
     @ResponseBody
@@ -41,15 +45,13 @@ public class GoodsController {
         if(goodsVO==null){
             return Result.error(CodeMsg.GOODS_NOT_EXIST);
         }
-        long startAt = goodsVO.getStartDate().getTime();
-        long endAt = goodsVO.getEndDate().getTime();
-        long current = System.currentTimeMillis();
         int remainSeconds = 0;
         int miaoshaStatus = 0;
-        if(current<startAt){//秒杀未开始
+        Integer res = miaoshaService.isBegin(goodsVO);
+        if(res>0){//秒杀未开始
             miaoshaStatus = 0;
-            remainSeconds = (int) ((startAt-current)/1000);
-        }else if(current>endAt){//秒杀已结束
+            remainSeconds = res;
+        }else if(res<0){//秒杀已结束
             miaoshaStatus = 2;
             remainSeconds = -1;
         }else{//秒杀进行中

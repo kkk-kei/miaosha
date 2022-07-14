@@ -14,6 +14,7 @@ import miaosha.service.GoodsService;
 import miaosha.service.MiaoshaService;
 import miaosha.service.OrderService;
 import miaosha.vo.GoodsVO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -44,7 +45,7 @@ public class MiaoshaController implements InitializingBean {
     private ExecutorService executorService;
 
     private HashMap<Long,Boolean> isOverMap = new HashMap<>();
-
+    private HashMap<Long,Integer> originStockMap = new HashMap<>();
 
     @AccessLimit(seconds = 1,maxCount = 5)
     @NeedLogin(value = true)
@@ -53,6 +54,9 @@ public class MiaoshaController implements InitializingBean {
     public Result<String> getMiaoshaPath(MiaoshaUser user,
                                          @PathVariable("goodsID")Long goodsID){
         String path = miaoshaService.createMiaoshaPath(user.getId(),goodsID);
+        if(StringUtils.isEmpty(path)){
+            return Result.error(CodeMsg.REQUEST_ILLEGAL);
+        }
         return Result.success(path);
     }
 
@@ -133,8 +137,10 @@ public class MiaoshaController implements InitializingBean {
             goodsService.addRedisStock(goodsVO.getId(),goodsVO.getStockCount());
             if (goodsVO.getGoodsStock()<=0) {
                 isOverMap.put(goodsVO.getId(),true);
+            }else{
+                originStockMap.put(goodsVO.getId(),goodsVO.getStockCount()*3);
+                isOverMap.put(goodsVO.getId(),false);
             }
-            isOverMap.put(goodsVO.getId(),false);
         }
         //初始化令牌桶
         rateLimiter = RateLimiter.create(100);

@@ -56,9 +56,30 @@ public class MiaoshaService {
     }
 
     public String createMiaoshaPath(Long userID, Long goodsID) {
-        String path = MD5Util.md5(UUIDUtil.uuid() + MD5Util.salt);
-        redisService.set(MiaoshaKey.getMiaoshaPathByUidGid,""+userID+"_"+goodsID,path);
-        return path;
+        if(userID==null||userID<=0||goodsID==null||goodsID<=0){
+            return null;
+        }
+        GoodsVO goodsVO = goodsService.getGoodsVOByGoodsID(goodsID);
+        Integer res = miaoshaService.isBegin(goodsVO);
+        if(res==0){
+            String path = MD5Util.md5(UUIDUtil.uuid() + MD5Util.salt);
+            redisService.set(MiaoshaKey.getMiaoshaPathByUidGid,""+userID+"_"+goodsID,path);
+            return path;
+        }
+        return null;
+    }
+
+    public Integer isBegin(GoodsVO goodsVO) {
+        long startAt = goodsVO.getStartDate().getTime();
+        long endAt = goodsVO.getEndDate().getTime();
+        long current = System.currentTimeMillis();
+        if(current<startAt){//未开始
+            return (int) ((startAt-current)/1000);
+        }else if(current>endAt){//已结束
+            return -1;
+        }else{//进行中
+            return 0;
+        }
     }
 
 

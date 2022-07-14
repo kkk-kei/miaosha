@@ -1,14 +1,19 @@
 ## 参考资料
 * 隐藏秒杀地址[https://www.shangyexinzhi.com/article/2741037.html]
 * 优化[https://www.cnblogs.com/xiangkejin/p/9351463.html]
+* [https://ac.nowcoder.com/discuss/965283?type=2&order=0&pos=9&page=1&channel=-1&source_id=discuss_center_2_nctrack]
+* [https://www.nowcoder.com/discuss/483320?page=1]
 
 ## 总结
-* 秒杀链接加盐，防止提前暴露秒杀链接
+* 秒杀链接加盐，防止提前暴露秒杀链接，同时实现秒杀大闸限制流量
 * 使用redis对单用户限流，使用令牌桶对秒杀接口限流
-* 使用线程池进行队列泄洪,减少线程切换的开销
+* 使用线程池进行队列泄洪，减少线程切换的开销
 * 使用redis进行库存预热和预减库存，减少数据库访问
 * 使用Jmeter进行压力测试，对接口进行优化
 
+如果用户提前请求秒杀链接，后端需要判断是否到达秒杀时间
+
+秒杀大闸既可以限流、又可以减少redis访问（请求地址需要访问redis）
 限流是削峰的一种实现，限制总的qps
 线程池进行队列泄洪,限制cpu单位时间内处理的请求/单位时间内的qps
 ![img.png](docs/img.png)
