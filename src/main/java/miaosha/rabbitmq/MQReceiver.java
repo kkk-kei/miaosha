@@ -32,12 +32,14 @@ public class MQReceiver {
         //判断重复秒杀
         MiaoshaOrder order = redisService.get(OrderKey.getMiaoshaOrderByUidGid, "" + user.getId() + "_" + goodsID, MiaoshaOrder.class);
         if(order!=null){
+            goodsService.increaseRedisStock(goodsID);
             return;
         }
         //判断库存
-        GoodsVO goodsVO = goodsService.getGoodsVOByGoodsID(goodsID);
+        GoodsVO goodsVO = goodsService.getGoodsVOFromDBByGoodsID(goodsID);
         int stockCount = goodsVO.getStockCount();
         if(stockCount<=0){
+            goodsService.increaseRedisStock(goodsID);
             return;
         }
         //秒杀

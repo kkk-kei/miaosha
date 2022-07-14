@@ -44,16 +44,24 @@ public class GoodsService {
         return goodsVO;
     }
 
-    public boolean reduceDBStock(Long goodsID) {
-        int res = goodsDao.reduceStock(goodsID);
-        return res>0;
+    public GoodsVO getGoodsVOFromDBByGoodsID(Long goodsID){
+        return goodsDao.getGoodsVOByGoodsID(goodsID);
     }
 
     public Long reduceRedisStock(Long goodsID) {
         return redisService.decr(GoodsKey.getGoodsStockByGid, "" + goodsID);
     }
 
+    public void increaseRedisStock(Long goodsID) {
+        redisService.incr(GoodsKey.getGoodsStockByGid, "" + goodsID);
+    }
+
     public void addRedisStock(Long goodsID, Integer stockCount) {
         redisService.set(GoodsKey.getGoodsStockByGid,""+goodsID,stockCount);
+    }
+
+    public boolean reduceDBStock(Long goodsID) {
+        int res = goodsDao.reduceStock(goodsID);
+        return res>0;
     }
 }

@@ -48,9 +48,6 @@ public class MiaoshaController implements InitializingBean {
     @ResponseBody
     public Result<String> getMiaoshaPath(MiaoshaUser user,
                                          @PathVariable("goodsID")Long goodsID){
-        if(user==null){
-            return Result.error(CodeMsg.SESSION_ERROR);
-        }
         String path = miaoshaService.createMiaoshaPath(user.getId(),goodsID);
         return Result.success(path);
     }
@@ -64,9 +61,6 @@ public class MiaoshaController implements InitializingBean {
     public Result<CodeMsg> doMiaosha(MiaoshaUser user,
                                      @PathVariable("path")String path,
                                      @RequestParam("goodsID") Long goodsID){
-        if(user==null){
-            return Result.error(CodeMsg.SESSION_ERROR);
-        }
         Boolean check = miaoshaService.checkPath(path,user.getId(),goodsID);
         if(!check){
             return Result.error(CodeMsg.REQUEST_ILLEGAL);
@@ -88,6 +82,7 @@ public class MiaoshaController implements InitializingBean {
         Long stock = goodsService.reduceRedisStock(goodsID);
         if(stock<0){
             isOverMap.put(goodsID,true);
+            goodsService.increaseRedisStock(goodsID);
             throw new GlobalException(CodeMsg.STOCK_EMPTY);
         }
         //入队,异步下单

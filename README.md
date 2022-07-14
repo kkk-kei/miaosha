@@ -25,14 +25,9 @@ redis页面缓存是针对多个客户端的并发请求，可以直接获取完
 
 ## 优化
 * Snowflake - 分布式自增 ID 算法（雪花）
-* 拦截器判断是否登录
 
 
 ## 备忘录
-* 修改mysql、redis配置
-* 查看key 补齐缓存
-* 把url请求改成键值对
-* 对接口参数进行校验（检查）
 
 ## 总结
 * 隐藏秒杀地址[https://www.shangyexinzhi.com/article/2741037.html]

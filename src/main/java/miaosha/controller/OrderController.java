@@ -32,9 +32,6 @@ public class OrderController {
     public Result<OrderDetailVO> getOrderDetail(MiaoshaUser user,
                                              @PathVariable("orderID")Long orderID){
         //用户只能查看自己的订单
-        if(user==null){
-            throw new GlobalException(CodeMsg.SESSION_ERROR);
-        }
         OrderInfo orderInfo = orderService.getOrderInfoByOrderID(orderID);
         if(orderInfo==null){
             throw new GlobalException(CodeMsg.ORDER_NOT_EXIST);
